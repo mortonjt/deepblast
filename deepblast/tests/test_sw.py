@@ -47,9 +47,9 @@ def test_wavefrontify(b):
     w_unwavefrontified = unwavefrontify(w_wavefrontified)
 
     assert w_wavefrontified.shape == (l1 + l2 - 1, s, l1, b)
-    assert all(w_unwavefrontified == w)
-    for n in torch.range(b):
-      for a in torch.range(s):
-        for i in torch.range(l1):
-          for j in torch.range(l2):
+    assert torch.allclose(w_unwavefrontified, w)
+    for n in torch.arange(b):
+      for a in torch.arange(s):
+        for i in torch.arange(l1):
+          for j in torch.arange(l2):
             assert w_wavefrontified[i + j, a, i, n] == w[n, i, j, a]

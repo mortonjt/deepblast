@@ -3,7 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def tt_slice(x, a, b):
+
+def tt_slice3(x, a, b):
+    a1, a2, a3 = a
+    b1, b2, b3 = b
+    return x[a1:a1+b1, a2:a2+b2, a3:a3+b3]
+
+def tt_slice4(x, a, b):
     a1, a2, a3, a4 = a
     b1, b2, b3, b4 = b
     return x[a1:a1+b1, a2:a2+b2, a3:a3+b3, a4:a4+b4]
@@ -35,10 +41,11 @@ def wavefrontify(tensor):
     n_pad, padded_len = l1 - 1, l1 + l2 - 1
 
     ta = []
-    for i in range(l1):
-        row_i = tt_slice(tensor, [0, i, 0, 0], [b, 1, l2, s]).squeeze(1)
-        row_i = F.pad(row_i, [[0, 0], [n_pad, n_pad], [0, 0]])
-        row_i = tt_slice(row_i, [0, n_pad - i, 0], [b, padded_len, s])
+    for i in torch.arange(0, l1):
+        row_i = tt_slice4(tensor, [0, i, 0, 0], [b, 1, l2, s]).squeeze(1)
+        row_i = F.pad(row_i, [0, 0, n_pad, n_pad, 0, 0])
+        #row_i = torch.nn.ConstantPad3d([[0, 0], [n_pad, n_pad], [0, 0]], 0)(row_i)
+        row_i = tt_slice3(row_i, [0, n_pad - i, 0], [b, padded_len, s])
         ta.append(row_i)
     ta = torch.stack(ta, 0)
 
@@ -64,8 +71,8 @@ def unwavefrontify(tensor):
     l2 = padded_len - l1 + 1
 
     ta = []
-    for i in tf.range(l1):
-        row_i = tf.slice(tensor, [i, 0, i, 0], [l2, s, 1, b]).squeeze(2)
+    for i in torch.arange(0, l1):
+        row_i = tt_slice4(tensor, [i, 0, i, 0], [l2, s, 1, b]).squeeze(2)
         ta.append(row_i)  # row_i[l2, s, b]
     ta = torch.stack(ta)  # ta[l1, l2, s, b]
 
@@ -80,7 +87,7 @@ def slice_lead_dims(
         s,
 ):
     """Returns t[k][:s] for "wavefrontified" tensors."""
-    return tf.slice(t, [k, 0, 0, 0], [1, s, l1, b]).squeeze(0)
+    return tt_slice4(t, [k, 0, 0, 0], [1, s, l1, b]).squeeze(0)
 
 # "Wavefrontified" tensors contain invalid entries that need to be masked.
 def slice_inv_mask(k):
