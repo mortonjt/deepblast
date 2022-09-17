@@ -97,8 +97,6 @@ def slice_inv_mask(k):
 
 # Setups reduction operators.
 def reduce_max_with_argmax(t, axis = 0):
-    # Note(fllinares): I haven't yet managed to beat the performance of this
-    # (wasteful) implementation with tf.argmax + tf.gather / tf.gather_nd :(
     t_max = torch.max(t, axis=axis)
     t_argmax = torch.argmax(t, axis=axis).long()
     return t_max, t_argmax
