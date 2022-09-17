@@ -1,4 +1,20 @@
 import torch
+import torch.nn.functional as F
+
+
+def top_pad(t, v):
+  """Pads torch.Tensor `t` by prepending `v` along the leading dimension."""
+  return F.pad(t, [1, 0, 0, 0, 0, 0], value=v)
+
+
+def left_pad(t, v):
+  """Pads torch.Tensor `t` by prepending `v` along the second leading dimension."""
+  return F.pad(t, [0, 0, 1, 0, 0, 0], value=v)
+
+
+def right_pad(t, v):
+  """Pads torch.Tensor `t` by appending `v` along the second leading dimension."""
+  return F.pad(t, [0, 0, 0, 1, 0, 0], value=v)
 
 
 def weights_from_sim_mat(
